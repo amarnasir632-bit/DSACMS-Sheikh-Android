@@ -1,0 +1,30 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:layoutDirection="rtl">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:background="#123E35" android:gravity="center_vertical" android:orientation="horizontal" android:padding="20dp">
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:text="طلبات التواصل" android:textColor="#FFFFFF" android:textSize="24sp" android:textStyle="bold" />
+        <Button android:id="@+id/settings_button" android:layout_width="wrap_content" android:layout_height="48dp" android:text="الإعدادات" />
+    </LinearLayout>
+    <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:fillViewport="true" android:scrollbars="none">
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:padding="12dp" android:orientation="horizontal">
+            <Button android:id="@+id/filter_new" android:layout_width="wrap_content" android:layout_height="52dp" android:text="جديدة" />
+            <Button android:id="@+id/filter_all" android:layout_width="wrap_content" android:layout_height="52dp" android:layout_marginStart="6dp" android:text="الكل" />
+            <Button android:id="@+id/filter_contacted" android:layout_width="wrap_content" android:layout_height="52dp" android:layout_marginStart="6dp" android:text="تم التواصل" />
+            <Button android:id="@+id/filter_ignored" android:layout_width="wrap_content" android:layout_height="52dp" android:layout_marginStart="6dp" android:text="متجاهلة" />
+        </LinearLayout>
+    </HorizontalScrollView>
+    <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+        <LinearLayout android:id="@+id/empty_state" android:layout_width="match_parent" android:layout_height="match_parent"
+            android:gravity="center" android:orientation="vertical" android:padding="32dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="لا توجد طلبات لعرضها الآن" android:textColor="#24332E" android:textSize="20sp" android:textStyle="bold" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp"
+                android:gravity="center" android:text="ستظهر الطلبات هنا بعد ربط التطبيق بخادم الموقع." android:textColor="#65726D" android:textSize="16sp" />
+        </LinearLayout>
+        <ScrollView android:id="@+id/request_list_scroll" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
+            <LinearLayout android:id="@+id/request_list" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="14dp" />
+        </ScrollView>
+    </FrameLayout>
+</LinearLayout>
