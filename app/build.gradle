@@ -2,6 +2,11 @@ plugins {
     id 'com.android.application'
 }
 
+def releaseSigningConfigured = System.getenv('DSA_RELEASE_STORE_FILE')
+        && System.getenv('DSA_RELEASE_STORE_PASSWORD')
+        && System.getenv('DSA_RELEASE_KEY_ALIAS')
+        && System.getenv('DSA_RELEASE_KEY_PASSWORD')
+
 // Firebase setup remains optional until the real Firebase project config is added.
 if (file('google-services.json').exists()) {
     apply plugin: 'com.google.gms.google-services'
@@ -19,6 +24,17 @@ android {
         versionName '0.1.0'
     }
 
+    if (releaseSigningConfigured) {
+        signingConfigs {
+            release {
+                storeFile file(System.getenv('DSA_RELEASE_STORE_FILE'))
+                storePassword System.getenv('DSA_RELEASE_STORE_PASSWORD')
+                keyAlias System.getenv('DSA_RELEASE_KEY_ALIAS')
+                keyPassword System.getenv('DSA_RELEASE_KEY_PASSWORD')
+            }
+        }
+    }
+
     buildTypes {
         debug {
             minifyEnabled false
@@ -27,6 +43,7 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (releaseSigningConfigured) signingConfig signingConfigs.release
         }
     }
 
