@@ -2,6 +2,7 @@ package com.dsacms.sheikhrequests;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -141,7 +142,10 @@ public final class MainActivity extends Activity {
         view.findViewById(R.id.filter_new).setOnClickListener(v -> showRequests("pending"));
         view.findViewById(R.id.filter_all).setOnClickListener(v -> showRequests("all"));
         view.findViewById(R.id.filter_contacted).setOnClickListener(v -> showRequests("answered"));
-        view.findViewById(R.id.filter_ignored).setVisibility(View.GONE);
+        TextView archived = view.findViewById(R.id.filter_ignored);
+        archived.setText("مؤرشفة");
+        archived.setVisibility(View.VISIBLE);
+        archived.setOnClickListener(v -> showRequests("archived"));
         loadContactRequests(view);
     }
 
@@ -237,6 +241,8 @@ public final class MainActivity extends Activity {
         TextView heading = view.findViewById(R.id.detail_heading);
         EditText answer = view.findViewById(R.id.detail_answer);
         Button publish = view.findViewById(R.id.answer_button);
+        Button archive = view.findViewById(R.id.archive_question_button);
+        Button delete = view.findViewById(R.id.delete_question_button);
         heading.setText("السؤال العام");
         name.setText("السائل: جارٍ التحميل…");
         question.setText("السؤال: —");
@@ -257,7 +263,11 @@ public final class MainActivity extends Activity {
                     renderDetailStatus(request.status);
                     answer.setText(request.answer);
                     publish.setText("answered".equals(request.status) ? "حفظ تعديل الإجابة" : "نشر الإجابة");
-                    publish.setEnabled(true);
+                    boolean isArchived = "archived".equals(request.status);
+                    publish.setEnabled(!isArchived);
+                    archive.setText(isArchived ? "إرجاع إلى الأسئلة" : "أرشفة السؤال");
+                    archive.setEnabled(true);
+                    delete.setEnabled(true);
                 });
             } catch (Exception error) {
                 runOnUiThread(() -> {
@@ -271,6 +281,49 @@ public final class MainActivity extends Activity {
         });
 
         publish.setOnClickListener(v -> publishAnswer(requestId, answer.getText().toString()));
+        archive.setOnClickListener(v -> archiveQuestion(requestId,
+                currentRequest != null && "archived".equals(currentRequest.status)));
+        delete.setOnClickListener(v -> confirmDeleteQuestion(requestId));
+    }
+
+    private void archiveQuestion(String requestId, boolean restore) {
+        networkExecutor.execute(() -> {
+            try {
+                apiClient.archiveQuestion(sessionToken, requestId, restore);
+                runOnUiThread(() -> {
+                    Toast.makeText(this, restore ? "تم إرجاع السؤال." : "تمت أرشفة السؤال.", Toast.LENGTH_SHORT).show();
+                    showRequests(currentFilter);
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    if (handleExpiredSession(error)) return;
+                    Toast.makeText(this, error instanceof SiteApiClient.ApiException
+                            ? error.getMessage() : "تعذر حفظ حالة السؤال. تحقق من الاتصال وحاول مجددًا.", Toast.LENGTH_LONG).show();
+                });
+            }
+        });
+    }
+
+    private void confirmDeleteQuestion(String requestId) {
+        new AlertDialog.Builder(this)
+                .setTitle("حذف السؤال")
+                .setMessage("سيتم حذف السؤال وإجابته نهائياً. هل تريد المتابعة؟")
+                .setNegativeButton("إلغاء", null)
+                .setPositiveButton("حذف", (dialog, which) -> networkExecutor.execute(() -> {
+                    try {
+                        apiClient.deleteQuestion(sessionToken, requestId);
+                        runOnUiThread(() -> {
+                            Toast.makeText(this, "تم حذف السؤال.", Toast.LENGTH_SHORT).show();
+                            showRequests(currentFilter);
+                        });
+                    } catch (Exception error) {
+                        runOnUiThread(() -> {
+                            if (handleExpiredSession(error)) return;
+                            Toast.makeText(this, error instanceof SiteApiClient.ApiException
+                                    ? error.getMessage() : "تعذر حذف السؤال. تحقق من الاتصال وحاول مجددًا.", Toast.LENGTH_LONG).show();
+                        });
+                    }
+                })).show();
     }
 
     private void publishAnswer(String requestId, String answer) {
@@ -304,6 +357,7 @@ public final class MainActivity extends Activity {
         refreshPushRegistrationStatus(registration);
         view.findViewById(R.id.settings_back).setOnClickListener(v -> showRequests(currentFilter));
         view.findViewById(R.id.logout_button).setOnClickListener(v -> logout());
+        view.findViewById(R.id.test_notification).setOnClickListener(v -> testNotification());
         view.findViewById(R.id.enable_notifications).setOnClickListener(v -> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
                     && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
@@ -317,18 +371,53 @@ public final class MainActivity extends Activity {
         view.findViewById(R.id.open_notification_settings).setOnClickListener(v -> openNotificationSettings());
     }
 
+    private void testNotification() {
+        networkExecutor.execute(() -> {
+            try {
+                org.json.JSONObject result = apiClient.testNotification(sessionToken);
+                int registered = result.optInt("registered", 0);
+                int accepted = result.optInt("accepted", 0);
+                org.json.JSONArray failures = result.optJSONArray("failures");
+                String message;
+                if (registered == 0) {
+                    message = "لا يوجد جهاز مسجل عند السيرفر. أعد تسجيل الدخول ثم جرّب.";
+                } else if (accepted > 0) {
+                    message = "قبل Firebase إرسال الإشعار لهذا الجهاز. راجع شريط الإشعارات.";
+                } else {
+                    String code = failures == null || failures.length() == 0 ? "غير معروف" : failures.optString(0);
+                    message = "Firebase رفض الإشعار: " + code;
+                }
+                String finalMessage = message;
+                runOnUiThread(() -> Toast.makeText(this, finalMessage, Toast.LENGTH_LONG).show());
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    if (handleExpiredSession(error)) return;
+                    Toast.makeText(this, error instanceof SiteApiClient.ApiException
+                            ? error.getMessage() : "تعذر اختبار الإشعار. تحقق من الاتصال.", Toast.LENGTH_LONG).show();
+                });
+            }
+        });
+    }
+
     private void logout() {
         String oldSession = sessionToken;
         sessionToken = null;
         sessionStore.clear();
         showLogin();
-        if (oldSession == null || FirebaseApp.getApps(this).isEmpty()) return;
+        if (oldSession == null) return;
         networkExecutor.execute(() -> {
             try {
-                String fcmToken = Tasks.await(FirebaseMessaging.getInstance().getToken(), 10, TimeUnit.SECONDS);
-                apiClient.unregisterPushToken(oldSession, fcmToken);
+                if (!FirebaseApp.getApps(this).isEmpty()) {
+                    String fcmToken = Tasks.await(FirebaseMessaging.getInstance().getToken(), 10, TimeUnit.SECONDS);
+                    apiClient.unregisterPushToken(oldSession, fcmToken);
+                }
             } catch (Exception ignored) {
-                // The session is cleared locally; an unreachable backend can prune stale tokens later.
+                // Continue to revoke the server session even if push-token cleanup fails.
+            }
+            try {
+                apiClient.logout(oldSession);
+            } catch (Exception ignored) {
+                // The session is cleared locally; an unreachable backend can expire it later.
             }
         });
     }

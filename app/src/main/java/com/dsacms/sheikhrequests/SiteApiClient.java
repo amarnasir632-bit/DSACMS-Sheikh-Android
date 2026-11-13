@@ -27,6 +27,9 @@ public final class SiteApiClient {
     }
 
     public JSONArray getContactRequests(String sessionToken, String status) throws Exception {
+        if ("archived".equals(status)) {
+            return request("GET", "/questions/sheikh/archived", sessionToken, null).getJSONArray("json");
+        }
         if ("answered".equals(status) || "contacted".equals(status)) {
             return request("GET", "/questions/sheikh/answered", sessionToken, null).getJSONArray("json");
         }
@@ -60,6 +63,24 @@ public final class SiteApiClient {
     public void unregisterPushToken(String sessionToken, String token) throws Exception {
         request("DELETE", "/questions/sheikh/push-token", sessionToken,
                 new JSONObject().put("registration_token", token));
+    }
+
+    public void logout(String sessionToken) throws Exception {
+        request("POST", "/auth/logout", sessionToken, new JSONObject());
+    }
+
+    public JSONObject testNotification(String sessionToken) throws Exception {
+        return request("POST", "/questions/sheikh/test-notification", sessionToken, new JSONObject())
+                .getJSONObject("json");
+    }
+
+    public void archiveQuestion(String sessionToken, String id, boolean restore) throws Exception {
+        request("PATCH", "/questions/sheikh/" + id + (restore ? "/restore" : "/archive"),
+                sessionToken, new JSONObject());
+    }
+
+    public void deleteQuestion(String sessionToken, String id) throws Exception {
+        request("DELETE", "/questions/sheikh/" + id, sessionToken, null);
     }
 
     private JSONObject request(String method, String path, String sessionToken, JSONObject body) throws Exception {
