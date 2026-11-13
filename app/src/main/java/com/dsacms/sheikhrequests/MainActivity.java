@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.media.MediaRecorder;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
@@ -78,6 +79,9 @@ public final class MainActivity extends Activity {
     private File recordedAudioFile;
     private TextView audioAttachmentStatus;
     private Button recordAudioButton;
+    private Button previewAudioButton;
+    private Button redoAudioButton;
+    private MediaPlayer previewPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -359,6 +363,7 @@ public final class MainActivity extends Activity {
     }
 
     private void showRequestDetails(String requestId) {
+        stopAudioPreview();
         View view = getLayoutInflater().inflate(R.layout.screen_request_detail, null);
         replaceScreen(view);
         currentRequest = null;
@@ -371,6 +376,8 @@ public final class MainActivity extends Activity {
         Button recordAudio = view.findViewById(R.id.record_audio_button);
         Button pickAudio = view.findViewById(R.id.pick_audio_button);
         Button clearAudio = view.findViewById(R.id.clear_audio_button);
+        previewAudioButton = view.findViewById(R.id.preview_audio_button);
+        redoAudioButton = view.findViewById(R.id.redo_audio_button);
         audioAttachmentStatus = view.findViewById(R.id.audio_attachment_status);
         recordAudioButton = recordAudio;
         selectedAudioUri = null;
@@ -433,9 +440,19 @@ public final class MainActivity extends Activity {
             startActivityForResult(intent, AUDIO_PICK_REQUEST);
         });
         clearAudio.setOnClickListener(v -> {
+            stopAudioPreview();
             selectedAudioUri = null; selectedAudioName = ""; selectedAudioMime = "";
             if (recordedAudioFile != null) { recordedAudioFile.delete(); recordedAudioFile = null; }
             existingAudioUrl = ""; clearAudioRequested = true; renderAudioAttachment();
+        });
+        previewAudioButton.setOnClickListener(v -> toggleAudioPreview());
+        redoAudioButton.setOnClickListener(v -> {
+            stopAudioPreview();
+            selectedAudioUri = null; selectedAudioName = ""; selectedAudioMime = "";
+            if (recordedAudioFile != null) { recordedAudioFile.delete(); recordedAudioFile = null; }
+            existingAudioUrl = ""; clearAudioRequested = false;
+            renderAudioAttachment();
+            beginAudioRecording();
         });
         audioAttachmentStatus.setOnClickListener(v -> {
             if (existingAudioUrl != null && !existingAudioUrl.isBlank() && selectedAudioUri == null) {
@@ -521,6 +538,7 @@ public final class MainActivity extends Activity {
                     existingAudioUrl = audioUrl;
                     selectedAudioUri = null;
                     selectedAudioName = "";
+                    if (recordedAudioFile != null) { recordedAudioFile.delete(); recordedAudioFile = null; }
                 }
                 apiClient.answerQuestion(sessionToken, requestId, value, audioUrl);
                 runOnUiThread(() -> {
@@ -563,7 +581,11 @@ public final class MainActivity extends Activity {
             mediaRecorder.setMaxDuration(5 * 60 * 1000);
             mediaRecorder.setMaxFileSize(MAX_AUDIO_BYTES);
             mediaRecorder.setOutputFile(recordedAudioFile.getAbsolutePath());
-            mediaRecorder.setOnInfoListener((recorder, what, extra) -> { if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED || what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED) finishAudioRecording(); });
+            mediaRecorder.setOnInfoListener((recorder, what, extra) -> {
+                if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED || what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED) {
+                    runOnUiThread(this::finishAudioRecording);
+                }
+            });
             mediaRecorder.prepare();
             mediaRecorder.start();
             recordAudioButton.setText("إيقاف التسجيل");
@@ -597,9 +619,62 @@ public final class MainActivity extends Activity {
 
     private void renderAudioAttachment() {
         if (audioAttachmentStatus == null) return;
-        if (selectedAudioUri != null) audioAttachmentStatus.setText("التسجيل المرفق: " + selectedAudioName + " • " + selectedAudioMime);
-        else if (existingAudioUrl != null && !existingAudioUrl.isBlank() && !clearAudioRequested) audioAttachmentStatus.setText("يوجد تسجيل صوتي منشور — اضغط للمعاينة");
+        boolean hasSelected = selectedAudioUri != null;
+        boolean hasExisting = existingAudioUrl != null && !existingAudioUrl.isBlank() && !clearAudioRequested;
+        if (hasSelected) audioAttachmentStatus.setText("جاهز للمعاينة والرفع: " + selectedAudioName + " • " + selectedAudioMime);
+        else if (hasExisting) audioAttachmentStatus.setText("يوجد تسجيل صوتي منشور");
         else audioAttachmentStatus.setText("لا يوجد تسجيل صوتي مرفق");
+        if (previewAudioButton != null) previewAudioButton.setVisibility(hasSelected || hasExisting ? View.VISIBLE : View.GONE);
+        if (redoAudioButton != null) redoAudioButton.setVisibility(hasSelected && recordedAudioFile != null ? View.VISIBLE : View.GONE);
+    }
+
+    private void toggleAudioPreview() {
+        if (previewPlayer != null && previewPlayer.isPlaying()) {
+            previewPlayer.pause();
+            previewAudioButton.setText("▶  متابعة المعاينة");
+            return;
+        }
+        if (previewPlayer != null) {
+            previewPlayer.start();
+            previewAudioButton.setText("Ⅱ  إيقاف المعاينة");
+            return;
+        }
+        Uri source = selectedAudioUri != null ? selectedAudioUri
+                : (existingAudioUrl == null || existingAudioUrl.isBlank() ? null : Uri.parse(existingAudioUrl));
+        if (source == null) return;
+        previewAudioButton.setEnabled(false);
+        previewAudioButton.setText("جارٍ تجهيز المعاينة…");
+        previewPlayer = new MediaPlayer();
+        previewPlayer.setOnPreparedListener(player -> {
+            previewAudioButton.setEnabled(true);
+            previewAudioButton.setText("Ⅱ  إيقاف المعاينة");
+            player.start();
+        });
+        previewPlayer.setOnCompletionListener(player -> stopAudioPreview());
+        previewPlayer.setOnErrorListener((player, what, extra) -> {
+            stopAudioPreview();
+            Toast.makeText(this, "تعذر تشغيل هذا التسجيل الصوتي.", Toast.LENGTH_LONG).show();
+            return true;
+        });
+        try {
+            previewPlayer.setDataSource(this, source);
+            previewPlayer.prepareAsync();
+        } catch (Exception error) {
+            stopAudioPreview();
+            Toast.makeText(this, "تعذر فتح التسجيل للمعاينة.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void stopAudioPreview() {
+        if (previewPlayer != null) {
+            try { if (previewPlayer.isPlaying()) previewPlayer.stop(); } catch (Exception ignored) {}
+            try { previewPlayer.reset(); previewPlayer.release(); } catch (Exception ignored) {}
+            previewPlayer = null;
+        }
+        if (previewAudioButton != null) {
+            previewAudioButton.setEnabled(true);
+            previewAudioButton.setText("▶  معاينة التسجيل");
+        }
     }
 
     private byte[] readSelectedAudio(Uri uri) throws Exception {
@@ -629,6 +704,8 @@ public final class MainActivity extends Activity {
             byte[] buffer = new byte[8192]; long total = 0; int count;
             while (input != null && (count = input.read(buffer)) != -1) { total += count; if (total > MAX_AUDIO_BYTES) throw new IllegalArgumentException("الحد الأقصى لملف الصوت 20 ميجابايت."); }
         } catch (Exception error) { Toast.makeText(this, error.getMessage() == null ? "تعذر قراءة الملف الصوتي." : error.getMessage(), Toast.LENGTH_LONG).show(); return; }
+        stopAudioPreview();
+        if (recordedAudioFile != null) { recordedAudioFile.delete(); recordedAudioFile = null; }
         selectedAudioUri = uri; selectedAudioName = name; selectedAudioMime = mime;
         existingAudioUrl = ""; clearAudioRequested = false; renderAudioAttachment();
     }
@@ -866,6 +943,7 @@ public final class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         if (mediaRecorder != null) { try { mediaRecorder.stop(); } catch (Exception ignored) {} releaseRecorder(); }
+        stopAudioPreview();
         networkExecutor.shutdownNow();
         super.onDestroy();
     }
