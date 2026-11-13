@@ -1,13 +1,26 @@
 <resources>
     <style name="AppTheme" parent="android:style/Theme.Material.Light.NoActionBar">
-        <item name="android:fontFamily">sans</item>
-        <item name="android:colorAccent">#C49D54</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:colorAccent">#C89D54</item>
         <item name="android:fontFamily">@font/cairo_medium</item>
-        <item name="android:statusBarColor">#14253E</item>
-        <item name="android:navigationBarColor">#FFFFFF</item>
-        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:statusBarColor">#0F2137</item>
+        <item name="android:navigationBarColor">#FAF7F2</item>
         <item name="android:windowActionModeOverlay">true</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowBackground">#F9F6F2</item>
+        <item name="android:windowBackground">#FAF7F2</item>
+    </style>
+    <style name="RequestFilterChip">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">42dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:background">@drawable/filter_chip_inactive</item>
+        <item name="android:textColor">@color/site_navy</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">@font/cairo_medium</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
     </style>
 </resources>

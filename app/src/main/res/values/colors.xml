@@ -1,5 +1,10 @@
 <resources>
-    <color name="site_navy">#14253E</color>
-    <color name="site_gold">#C49D54</color>
-    <color name="site_cream">#F9F6F2</color>
+    <color name="site_navy">#0F2137</color>
+    <color name="site_gold">#C89D54</color>
+    <color name="site_cream">#FAF7F2</color>
+    <color name="site_surface">#FFFFFF</color>
+    <color name="site_quote">#F5F0E6</color>
+    <color name="site_border">#D6C7A9</color>
+    <color name="site_muted">#64748B</color>
+    <color name="site_danger">#B91C1C</color>
 </resources>

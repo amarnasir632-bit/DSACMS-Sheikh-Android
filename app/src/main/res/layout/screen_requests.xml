@@ -1,34 +1,49 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
-    android:orientation="vertical" android:layoutDirection="rtl">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:background="#14253E" android:gravity="center_vertical" android:orientation="horizontal" android:padding="20dp">
+    android:orientation="vertical" android:layoutDirection="rtl" android:background="#FAF7F2">
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="76dp"
+        android:background="#0F2137" android:gravity="center_vertical" android:orientation="horizontal"
+        android:paddingStart="16dp" android:paddingEnd="18dp">
         <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
-            android:text="الأسئلة العامة" android:textColor="#FFFFFF" android:textSize="24sp" android:textStyle="bold" />
-        <Button android:id="@+id/settings_button" android:layout_width="wrap_content" android:layout_height="48dp" android:text="الإعدادات" />
+            android:text="الأسئلة العامة" android:textColor="#FFFFFF" android:textSize="23sp" android:textStyle="bold" />
+        <ImageButton android:id="@+id/settings_button" android:layout_width="44dp" android:layout_height="44dp"
+            android:layout_marginStart="10dp" android:background="@drawable/app_bar_icon_background"
+            android:contentDescription="الإعدادات" android:padding="10dp" android:src="@drawable/ic_settings_white" />
+        <ImageButton android:id="@+id/refresh_requests" android:layout_width="44dp" android:layout_height="44dp"
+            android:layout_marginStart="10dp" android:background="@drawable/app_bar_icon_background" android:contentDescription="تحديث الأسئلة"
+            android:padding="10dp" android:src="@drawable/ic_refresh_white" />
     </LinearLayout>
+
     <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:fillViewport="true" android:scrollbars="none">
-        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:padding="12dp" android:orientation="horizontal">
-            <Button android:id="@+id/filter_new" android:layout_width="wrap_content" android:layout_height="52dp" android:text="بانتظار الإجابة" />
-            <Button android:id="@+id/filter_all" android:layout_width="wrap_content" android:layout_height="52dp" android:layout_marginStart="6dp" android:text="كل الأسئلة" />
-            <Button android:id="@+id/filter_contacted" android:layout_width="wrap_content" android:layout_height="52dp" android:layout_marginStart="6dp" android:text="تمت الإجابة" />
-            <Button android:id="@+id/filter_ignored" android:layout_width="wrap_content" android:layout_height="52dp" android:layout_marginStart="6dp" android:text="متجاهلة" />
+        android:fillViewport="false" android:scrollbars="none" android:overScrollMode="never">
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:paddingStart="14dp" android:paddingEnd="14dp"
+            android:paddingTop="14dp" android:paddingBottom="12dp">
+            <TextView android:id="@+id/filter_new" style="@style/RequestFilterChip" android:text="بانتظار الإجابة" />
+            <TextView android:id="@+id/filter_all" style="@style/RequestFilterChip" android:layout_marginStart="8dp" android:text="كل الأسئلة" />
+            <TextView android:id="@+id/filter_contacted" style="@style/RequestFilterChip" android:layout_marginStart="8dp" android:text="تمت الإجابة" />
+            <TextView android:id="@+id/filter_ignored" style="@style/RequestFilterChip" android:layout_marginStart="8dp" android:text="مؤرشفة" />
         </LinearLayout>
     </HorizontalScrollView>
-    <Button android:id="@+id/refresh_requests" android:layout_width="match_parent" android:layout_height="50dp"
-        android:layout_marginStart="12dp" android:layout_marginEnd="12dp" android:text="تحديث الأسئلة" />
+
     <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
         <LinearLayout android:id="@+id/empty_state" android:layout_width="match_parent" android:layout_height="match_parent"
-            android:gravity="center" android:orientation="vertical" android:padding="32dp">
-            <ImageView android:layout_width="180dp" android:layout_height="105dp" android:contentDescription="شعار الموقع" android:scaleType="fitCenter" android:src="@drawable/site_logo" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:text="تم تسجيل الدخول" android:textColor="#14253E" android:textSize="20sp" android:textStyle="bold" />
-            <TextView android:id="@+id/empty_subtitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp"
-                android:gravity="center" android:text="ستظهر الأسئلة العامة الواردة هنا." android:textColor="#5A6A7A" android:textSize="16sp" />
-            <TextView android:id="@+id/empty_message" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:text="لا توجد أسئلة لعرضها الآن" android:textColor="#24332E" android:textSize="18sp" android:textStyle="bold" />
+            android:gravity="center" android:orientation="vertical" android:padding="28dp">
+            <ImageView android:layout_width="152dp" android:layout_height="90dp" android:contentDescription="شعار الموقع"
+                android:scaleType="fitCenter" android:src="@drawable/site_logo" />
+            <TextView android:id="@+id/empty_message" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="18dp" android:text="جارٍ تحميل الأسئلة…" android:textColor="#0F2137"
+                android:textSize="19sp" android:textStyle="bold" />
+            <TextView android:id="@+id/empty_subtitle" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" android:gravity="center" android:text="تُحمّل الأسئلة العامة لحساب الشيخ."
+                android:textColor="#64748B" android:textSize="15sp" />
         </LinearLayout>
-        <ScrollView android:id="@+id/request_list_scroll" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
-            <LinearLayout android:id="@+id/request_list" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="14dp" />
+        <ScrollView android:id="@+id/request_list_scroll" android:layout_width="match_parent" android:layout_height="match_parent"
+            android:clipToPadding="false" android:fillViewport="true" android:visibility="gone">
+            <LinearLayout android:id="@+id/request_list" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:paddingStart="14dp" android:paddingEnd="14dp"
+                android:paddingTop="4dp" android:paddingBottom="20dp" />
         </ScrollView>
     </FrameLayout>
 </LinearLayout>

@@ -1,29 +1,91 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
-    android:layoutDirection="rtl">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="vertical" android:padding="20dp">
-        <Button android:id="@+id/detail_back" android:layout_width="wrap_content" android:layout_height="52dp" android:text="رجوع للأسئلة" />
-        <TextView android:id="@+id/detail_heading" android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="18dp" android:text="السؤال العام" android:textColor="#123E35" android:textSize="25sp" android:textStyle="bold" />
-        <TextView android:id="@+id/detail_name" android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="22dp" android:text="السائل: —" android:textColor="#24332E" android:textSize="18sp" />
-        <TextView android:id="@+id/detail_question" android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="18dp" android:text="السؤال: —" android:textColor="#24332E" android:textSize="18sp" />
-        <TextView android:id="@+id/detail_date" android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="16dp" android:text="التاريخ: —" android:textColor="#52615C" android:textSize="16sp" />
-        <TextView android:id="@+id/detail_status" android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="8dp" android:text="الحالة: —" android:textColor="#52615C" android:textSize="16sp" />
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="22dp"
-            android:text="الإجابة" android:textColor="#14253E" android:textSize="18sp" android:textStyle="bold" />
-        <EditText android:id="@+id/detail_answer" android:layout_width="match_parent" android:layout_height="180dp"
-            android:gravity="top|start" android:inputType="textCapSentences|textMultiLine" android:padding="12dp"
-            android:hint="اكتب إجابة الشيخ هنا" />
-        <Button android:id="@+id/answer_button" android:layout_width="match_parent" android:layout_height="58dp"
-            android:layout_marginTop="14dp" android:text="نشر الإجابة" android:textSize="17sp" />
-        <Button android:id="@+id/archive_question_button" android:layout_width="match_parent" android:layout_height="54dp"
-            android:layout_marginTop="10dp" android:text="أرشفة السؤال" android:textSize="16sp" />
-        <Button android:id="@+id/delete_question_button" android:layout_width="match_parent" android:layout_height="54dp"
-            android:layout_marginTop="8dp" android:text="حذف السؤال" android:textColor="#B3261E" android:textSize="16sp" />
+    android:orientation="vertical" android:layoutDirection="rtl" android:background="#FAF7F2">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="76dp"
+        android:background="#0F2137" android:gravity="center_vertical" android:orientation="horizontal"
+        android:paddingStart="16dp" android:paddingEnd="16dp">
+        <TextView android:id="@+id/detail_back" android:layout_width="42dp" android:layout_height="48dp"
+            android:contentDescription="رجوع للأسئلة" android:gravity="center" android:text="→"
+            android:textColor="#FFFFFF" android:textSize="30sp" />
+        <TextView android:id="@+id/detail_heading" android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:layout_marginStart="8dp" android:text="تفاصيل السؤال"
+            android:textColor="#FFFFFF" android:textSize="21sp" android:textStyle="bold" />
+        <TextView android:id="@+id/detail_status" android:layout_width="wrap_content" android:layout_height="36dp"
+            android:background="@drawable/pending_badge_background" android:gravity="center" android:paddingStart="13dp"
+            android:paddingEnd="13dp" android:text="بانتظار الإجابة" android:textColor="#7A5313"
+            android:textSize="13sp" android:textStyle="bold" />
     </LinearLayout>
-</ScrollView>
+
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+        android:clipToPadding="false" android:fillViewport="false">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:paddingStart="16dp" android:paddingEnd="16dp"
+            android:paddingTop="18dp" android:paddingBottom="24dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:background="@drawable/question_context_background" android:elevation="2dp"
+                android:orientation="vertical" android:padding="16dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:gravity="center_vertical" android:orientation="horizontal">
+                    <ImageView android:layout_width="36dp" android:layout_height="36dp" android:background="@drawable/avatar_circle_background"
+                        android:contentDescription="السائل" android:padding="8dp" android:src="@drawable/ic_person_white" />
+                    <TextView android:id="@+id/detail_name" android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp" android:layout_weight="1" android:text="السائل: جارٍ التحميل…"
+                        android:textColor="#0F2137" android:textSize="17sp" android:textStyle="bold" />
+                </LinearLayout>
+                <TextView android:id="@+id/detail_date" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp" android:text="التاريخ والوقت: —" android:textColor="#64748B" android:textSize="14sp" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp" android:background="@drawable/question_quote_background"
+                    android:orientation="vertical" android:padding="14dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="“" android:textColor="#C89D54" android:textSize="38sp" android:textStyle="bold" />
+                    <TextView android:id="@+id/detail_question" android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:lineSpacingMultiplier="1.15" android:text="السؤال: —" android:textColor="#0F2137" android:textSize="18sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="22dp"
+                android:text="إجابة فضيلة الشيخ" android:textColor="#0F2137" android:textSize="19sp" android:textStyle="bold" />
+            <EditText android:id="@+id/detail_answer" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:minHeight="170dp" android:maxLines="8" android:gravity="top|start"
+                android:inputType="textCapSentences|textMultiLine" android:padding="16dp"
+                android:layout_marginTop="10dp" android:background="@drawable/answer_field_background"
+                android:hint="اكتب إجابة الشيخ التفصيلية هنا..." android:textColor="#0F2137"
+                android:textColorHint="#7A8796" android:textSize="16sp" />
+
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="14dp" android:text="أو أرفق إجابة صوتية (MP3، M4A، AAC، WAV، OGG، OPUS، FLAC، 3GP)"
+                android:textColor="#0F2137" android:textSize="14sp" android:textStyle="bold" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" android:orientation="horizontal">
+                <Button android:id="@+id/record_audio_button" android:layout_width="0dp" android:layout_height="48dp"
+                    android:layout_weight="1" android:text="تسجيل صوتي" android:textAllCaps="false" />
+                <Button android:id="@+id/pick_audio_button" android:layout_width="0dp" android:layout_height="48dp"
+                    android:layout_marginStart="8dp" android:layout_weight="1" android:text="اختيار تسجيل" android:textAllCaps="false" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:gravity="center_vertical" android:orientation="horizontal">
+                <TextView android:id="@+id/audio_attachment_status" android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:paddingTop="6dp" android:text="لا يوجد تسجيل صوتي مرفق"
+                    android:textColor="#64748B" android:textSize="13sp" />
+                <Button android:id="@+id/clear_audio_button" android:layout_width="wrap_content" android:layout_height="42dp"
+                    android:text="إزالة" android:textAllCaps="false" />
+            </LinearLayout>
+
+            <Button android:id="@+id/answer_button" android:layout_width="match_parent" android:layout_height="54dp"
+                android:layout_marginTop="16dp" android:background="@drawable/primary_action_background"
+                android:text="✓  نشر الإجابة" android:textAllCaps="false" android:textColor="#FFFFFF"
+                android:textSize="17sp" android:textStyle="bold" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="12dp" android:orientation="horizontal">
+                <Button android:id="@+id/archive_question_button" android:layout_width="0dp" android:layout_height="52dp"
+                    android:layout_weight="1" android:background="@drawable/secondary_action_background"
+                    android:text="أرشفة السؤال" android:textAllCaps="false" android:textColor="#0F2137" android:textSize="14sp" />
+                <Button android:id="@+id/delete_question_button" android:layout_width="0dp" android:layout_height="52dp"
+                    android:layout_weight="1" android:layout_marginStart="12dp" android:background="@drawable/danger_action_background"
+                    android:drawableStart="@drawable/ic_delete_red" android:drawablePadding="6dp"
+                    android:text="حذف السؤال" android:textAllCaps="false" android:textColor="#B91C1C" android:textSize="14sp" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
