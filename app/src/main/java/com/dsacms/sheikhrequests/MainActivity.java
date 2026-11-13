@@ -20,6 +20,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ProgressBar;
 import android.database.Cursor;
 import android.provider.OpenableColumns;
 import java.io.ByteArrayOutputStream;
@@ -379,6 +380,7 @@ public final class MainActivity extends Activity {
         clearAudioRequested = false;
         renderAudioAttachment();
         Button publish = view.findViewById(R.id.answer_button);
+        ProgressBar audioUploadProgress = view.findViewById(R.id.audio_upload_progress);
         Button archive = view.findViewById(R.id.archive_question_button);
         Button delete = view.findViewById(R.id.delete_question_button);
         heading.setText("تفاصيل السؤال");
@@ -422,7 +424,7 @@ public final class MainActivity extends Activity {
             }
         });
 
-        publish.setOnClickListener(v -> publishAnswer(requestId, answer.getText().toString()));
+        publish.setOnClickListener(v -> publishAnswer(requestId, answer.getText().toString(), publish, audioUploadProgress));
         recordAudio.setOnClickListener(v -> { if (mediaRecorder == null) beginAudioRecording(); else finishAudioRecording(); });
         pickAudio.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
@@ -488,19 +490,34 @@ public final class MainActivity extends Activity {
                 })).show();
     }
 
-    private void publishAnswer(String requestId, String answer) {
+    private void publishAnswer(String requestId, String answer, Button publishButton, ProgressBar uploadProgress) {
         String value = answer.trim();
         if (mediaRecorder != null) { Toast.makeText(this, "أوقف التسجيل أولاً.", Toast.LENGTH_SHORT).show(); return; }
         if (value.length() < 2 && selectedAudioUri == null && (existingAudioUrl == null || existingAudioUrl.isBlank() || clearAudioRequested)) {
             Toast.makeText(this, "اكتب الإجابة أو أرفق تسجيلاً صوتياً.", Toast.LENGTH_SHORT).show();
             return;
         }
+        boolean hasAudioUpload = selectedAudioUri != null;
+        publishButton.setEnabled(false);
+        if (hasAudioUpload) {
+            uploadProgress.setProgress(0);
+            uploadProgress.setVisibility(View.VISIBLE);
+            audioAttachmentStatus.setText("جارٍ تجهيز التسجيل للرفع…");
+        }
         networkExecutor.execute(() -> {
             try {
                 String audioUrl = clearAudioRequested ? null : existingAudioUrl;
                 if (selectedAudioUri != null) {
                     byte[] audio = readSelectedAudio(selectedAudioUri);
-                    audioUrl = apiClient.uploadAnswerAudio(sessionToken, requestId, audio, selectedAudioName, selectedAudioMime);
+                    audioUrl = apiClient.uploadAnswerAudio(sessionToken, requestId, audio, selectedAudioName,
+                            selectedAudioMime, (uploaded, total) -> runOnUiThread(() -> {
+                                if (uploadProgress.getVisibility() == View.VISIBLE) {
+                                    uploadProgress.setProgress((int) (uploaded * 100L / total));
+                                    audioAttachmentStatus.setText("جارٍ رفع التسجيل إلى Cloudflare R2… "
+                                            + (uploaded * 100L / total) + "٪ (" + android.text.format.Formatter.formatShortFileSize(this, uploaded)
+                                            + " / " + android.text.format.Formatter.formatShortFileSize(this, total) + ")");
+                                }
+                            }));
                     existingAudioUrl = audioUrl;
                     selectedAudioUri = null;
                     selectedAudioName = "";
@@ -511,10 +528,14 @@ public final class MainActivity extends Activity {
                     if (detailStatus != null) renderDetailStatus("answered");
                     Toast.makeText(this, "تم نشر الإجابة.", Toast.LENGTH_SHORT).show();
                     clearAudioRequested = false;
+                    uploadProgress.setVisibility(View.GONE);
+                    publishButton.setEnabled(true);
                     renderAudioAttachment();
                 });
             } catch (Exception error) {
                 runOnUiThread(() -> {
+                    uploadProgress.setVisibility(View.GONE);
+                    publishButton.setEnabled(true);
                     if (handleExpiredSession(error)) return;
                     Toast.makeText(this, error instanceof SiteApiClient.ApiException ? error.getMessage() : "تعذر نشر الإجابة أو رفع التسجيل. حاول مرة أخرى.", Toast.LENGTH_LONG).show();
                 });
@@ -549,6 +570,9 @@ public final class MainActivity extends Activity {
             audioAttachmentStatus.setText("جارٍ تسجيل الإجابة… الحد 5 دقائق و20 ميجابايت");
         } catch (Exception error) {
             releaseRecorder();
+            if (recordedAudioFile != null) { recordedAudioFile.delete(); recordedAudioFile = null; }
+            if (recordAudioButton != null) recordAudioButton.setText("تسجيل صوتي");
+            if (audioAttachmentStatus != null) audioAttachmentStatus.setText("لا يوجد تسجيل صوتي مرفق");
             Toast.makeText(this, "تعذر بدء التسجيل. تحقق من إذن الميكروفون.", Toast.LENGTH_LONG).show();
         }
     }

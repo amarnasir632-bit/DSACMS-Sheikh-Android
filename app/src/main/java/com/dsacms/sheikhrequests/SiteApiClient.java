@@ -55,7 +55,10 @@ public final class SiteApiClient {
                 new JSONObject().put("answer_text", answer).put("answer_audio_url", audioUrl == null ? JSONObject.NULL : audioUrl)).getJSONObject("json");
     }
 
-    public String uploadAnswerAudio(String sessionToken, String id, byte[] audio, String filename, String mimeType) throws Exception {
+    public interface UploadProgressListener { void onProgress(int uploadedBytes, int totalBytes); }
+
+    public String uploadAnswerAudio(String sessionToken, String id, byte[] audio, String filename, String mimeType,
+                                    UploadProgressListener progressListener) throws Exception {
         String ext = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase(java.util.Locale.ROOT);
         HttpURLConnection connection = (HttpURLConnection) new URL(API_BASE + "/questions/sheikh/" + id + "/answer-audio?ext=" + ext).openConnection();
         connection.setRequestMethod("PUT");
@@ -67,7 +70,15 @@ public final class SiteApiClient {
         connection.setRequestProperty("Content-Type", mimeType);
         connection.setRequestProperty("Authorization", "Bearer " + sessionToken);
         try {
-            try (OutputStream output = connection.getOutputStream()) { output.write(audio); }
+            try (OutputStream output = connection.getOutputStream()) {
+                int offset = 0;
+                while (offset < audio.length) {
+                    int count = Math.min(16 * 1024, audio.length - offset);
+                    output.write(audio, offset, count);
+                    offset += count;
+                    if (progressListener != null) progressListener.onProgress(offset, audio.length);
+                }
+            }
             int code = connection.getResponseCode();
             InputStream stream = code >= 200 && code < 300 ? connection.getInputStream() : connection.getErrorStream();
             JSONObject response = new JSONObject(readFully(stream));
