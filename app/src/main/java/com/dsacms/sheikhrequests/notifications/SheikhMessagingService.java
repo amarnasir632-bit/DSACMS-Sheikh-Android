@@ -1,39 +1,54 @@
 package com.dsacms.sheikhrequests.notifications;
 
+import android.Manifest;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.content.pm.PackageManager;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.dsacms.sheikhrequests.MainActivity;
 import com.dsacms.sheikhrequests.R;
+import com.dsacms.sheikhrequests.SecureSessionStore;
+import com.dsacms.sheikhrequests.SiteApiClient;
 
 public final class SheikhMessagingService extends FirebaseMessagingService {
-    public static final String EXTRA_REQUEST_ID = "contact_request_id";
+    public static final String EXTRA_REQUEST_ID = "question_id";
     private static final String CHANNEL_ID = "contact_requests";
 
     @Override
     public void onNewToken(String token) {
         super.onNewToken(token);
-        // The token will be sent to the server only after Sheikh authentication
-        // and the registration endpoint are agreed during integration.
+        new Thread(() -> {
+            try {
+                String session = new SecureSessionStore(this).read();
+                if (session != null && !session.isBlank()) {
+                    new SiteApiClient().registerPushToken(session, token);
+                    getSharedPreferences("push_status", MODE_PRIVATE).edit().putBoolean("registered", true).apply();
+                }
+            } catch (Exception ignored) {
+                getSharedPreferences("push_status", MODE_PRIVATE).edit().putBoolean("registered", false).apply();
+            }
+        }, "fcm-token-register").start();
     }
 
     @Override
     public void onMessageReceived(RemoteMessage message) {
         super.onMessageReceived(message);
         String requestId = message.getData().get(EXTRA_REQUEST_ID);
+        if (requestId == null) requestId = message.getData().get("request_id");
         String title = message.getNotification() == null || message.getNotification().getTitle() == null
-                ? "طلب تواصل جديد" : message.getNotification().getTitle();
+                ? "سؤال عام جديد" : message.getNotification().getTitle();
         String body = message.getNotification() == null || message.getNotification().getBody() == null
-                ? "وصل طلب تواصل جديد." : message.getNotification().getBody();
+                ? "وصل سؤال جديد للشيخ." : message.getNotification().getBody();
         showNotification(title, body, requestId);
     }
 
@@ -50,6 +65,10 @@ public final class SheikhMessagingService extends FirebaseMessagingService {
     }
 
     private void showNotification(String title, String body, String requestId) {
+        if (!NotificationManagerCompat.from(this).areNotificationsEnabled()) return;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) return;
         Intent openApp = new Intent(this, MainActivity.class)
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         if (requestId != null && !requestId.isBlank()) openApp.putExtra(EXTRA_REQUEST_ID, requestId);
@@ -67,7 +86,11 @@ public final class SheikhMessagingService extends FirebaseMessagingService {
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH);
-        NotificationManagerCompat.from(this).notify(
-                requestId == null ? (int) System.currentTimeMillis() : requestId.hashCode(), notification.build());
+        try {
+            NotificationManagerCompat.from(this).notify(
+                    requestId == null ? (int) System.currentTimeMillis() : requestId.hashCode(), notification.build());
+        } catch (SecurityException ignored) {
+            // Permission may have changed between the check and posting the notification.
+        }
     }
 }
