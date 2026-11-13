@@ -3,22 +3,25 @@
     android:fillViewport="true" android:layoutDirection="rtl">
     <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
         android:gravity="center" android:orientation="vertical" android:padding="28dp">
+        <ImageView android:layout_width="220dp" android:layout_height="128dp"
+            android:contentDescription="شعار موقع الشيخ محمد أحمد الهادي الكرار"
+            android:scaleType="fitCenter" android:src="@drawable/site_logo" />
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="طلبات التواصل" android:textColor="#123E35" android:textSize="30sp" android:textStyle="bold" />
+            android:layout_marginTop="12dp" android:text="الأسئلة العامة" android:textColor="#14253E" android:textSize="28sp" android:textStyle="bold" />
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="10dp" android:gravity="center" android:text="تطبيق خاص بإدارة طلبات التواصل" android:textColor="#52615C" android:textSize="17sp" />
+            android:layout_marginTop="8dp" android:gravity="center" android:text="المكتبة العلمية والصوتية للشيخ محمد أحمد الهادي الكرار" android:textColor="#5A6A7A" android:textSize="16sp" />
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="38dp" android:text="اسم المستخدم" android:textColor="#24332E" android:textSize="16sp" />
+            android:layout_marginTop="30dp" android:text="اسم المستخدم المستخدم في لوحة الموقع" android:textColor="#14253E" android:textSize="16sp" />
         <EditText android:id="@+id/username" android:layout_width="match_parent" android:layout_height="56dp"
             android:layout_marginTop="8dp" android:autofillHints="username" android:hint="اسم المستخدم"
             android:inputType="text" android:padding="14dp" android:singleLine="true" />
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="18dp" android:text="كلمة المرور" android:textColor="#24332E" android:textSize="16sp" />
+            android:layout_marginTop="18dp" android:text="كلمة المرور" android:textColor="#14253E" android:textSize="16sp" />
         <EditText android:id="@+id/password" android:layout_width="match_parent" android:layout_height="56dp"
             android:layout_marginTop="8dp" android:autofillHints="password" android:hint="كلمة المرور"
             android:inputType="textPassword" android:padding="14dp" android:singleLine="true" />
         <Button android:id="@+id/login_button" android:layout_width="match_parent" android:layout_height="58dp"
-            android:layout_marginTop="26dp" android:text="تسجيل الدخول" android:textSize="18sp" />
+            android:layout_marginTop="26dp" android:backgroundTint="#14253E" android:text="تسجيل الدخول" android:textColor="#FFFFFF" android:textSize="18sp" />
         <Button android:id="@+id/login_notification_settings" android:layout_width="match_parent" android:layout_height="54dp"
             android:layout_marginTop="8dp" android:text="إعدادات الإشعارات" android:textSize="16sp" />
         <TextView android:id="@+id/login_message" android:layout_width="match_parent" android:layout_height="wrap_content"

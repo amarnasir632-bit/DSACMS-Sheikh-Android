@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">طلبات التواصل</string>
-    <string name="notification_channel_name">طلبات التواصل الجديدة</string>
-    <string name="notification_channel_description">تنبيهات عند وصول طلب تواصل جديد</string>
+    <string name="app_name">الأسئلة العامة</string>
+    <string name="notification_channel_name">الأسئلة العامة الجديدة</string>
+    <string name="notification_channel_description">تنبيهات عند وصول سؤال عام جديد</string>
 </resources>
